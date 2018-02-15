@@ -14,21 +14,22 @@ pygame.font.init()
 myfont = pygame.font.SysFont("monospace", 15)
 
 class Board(object):
-    def __init__(self):
+    def __init__(self, color):
         self.left_line = ((50,50),(50,350))
         self.top_line = ((50,50),(350,50))
         self.right_line = ((350, 50,), (350,350))
+        self.color = color
 
     def display(self):
-        pygame.draw.line(screen, (0, 0, 0), self.left_line[0], self.left_line[1], 8)
-        pygame.draw.line(screen, (0, 0, 0), self.top_line[0], self.top_line[1], 8)
-        pygame.draw.line(screen, (0, 0, 0), self.right_line[0], self.right_line[1], 8)
+        pygame.draw.line(screen, self.color, self.left_line[0], self.left_line[1], 8)
+        pygame.draw.line(screen, self.color, self.top_line[0], self.top_line[1], 8)
+        pygame.draw.line(screen, self.color, self.right_line[0], self.right_line[1], 8)
     def get_top_line(self):
-        return pygame.draw.line(screen, (0, 0, 0), self.top_line[0], self.top_line[1], 8)
+        return pygame.draw.line(screen, self.color, self.top_line[0], self.top_line[1], 8)
     def get_left_line(self):
-        return pygame.draw.line(screen, (0, 0, 0), self.left_line[0], self.left_line[1], 8)
+        return pygame.draw.line(screen, self.color, self.left_line[0], self.left_line[1], 8)
     def get_right_line(self):
-        return pygame.draw.line(screen, (0, 0, 0), self.right_line[0], self.right_line[1], 8)
+        return pygame.draw.line(screen, self.color, self.right_line[0], self.right_line[1], 8)
 class Rope(Vector):
     def __init__(self,length, angle, back_end_coordinates, color, tension = 0):
         Vector.__init__(self, length, angle, back_end_coordinates)
@@ -83,7 +84,7 @@ def get_tensions(angle1, angle2, weight_of_block):
 
 screen.fill(background_color)
 
-board = Board()
+board = Board((150, 0, 0))
 board.display()
 #if on top
 option1 = (randint(50,200),50)
@@ -115,6 +116,8 @@ pygame.display.flip()
 
 weight = "";
 weightInt = 0;
+
+tensions_after_block = (0,0)
 
 while 1:
 
@@ -169,8 +172,8 @@ while 1:
     else:
 
         screen.fill(background_color)
-        instructions1 = myfont.render("Click on the poles to adjust the ropes:", 1, (0, 0, 0))
-        screen.blit(instructions1, (25, 20))
+        instructions1 = myfont.render("Click on the red poles to adjust the ropes:", 1, (0, 0, 0))
+        screen.blit(instructions1, (10, 20))
         instructions2 = myfont.render("Enter a weight then hit 'Enter':", 1, (0, 0, 0))
         screen.blit(instructions2, (60, 250))
         label = myfont.render("Angle of Rope 1: " + str(round(math.degrees(rope1_vector.angle - math.pi), 4)), 1,
@@ -190,6 +193,11 @@ while 1:
 
         label = myfont.render(weight, 1, (0, 0, 0))
         screen.blit(label, (185, 175))
+
+        tension_message_t1 = myfont.render("T Left: " + str(round(tensions_after_block[0], 2)), 1, (0, 0, 0))
+        screen.blit(tension_message_t1, (60, 230))
+        tension_message_t2 = myfont.render("T Right: " + str(round(tensions_after_block[1], 2)), 1, (0, 0, 0))
+        screen.blit(tension_message_t2, (200, 230))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -229,10 +237,16 @@ while 1:
                 weight += event.unicode
                 weightInt = int(weight);
                 tensions_after_block = get_tensions(rope1.angle, rope2.angle, weightInt);
-                tension_message = myfont.render("T Left: " + str(tensions_after_block[0]) + "   T Right" + str(tensions_after_block[1]), 1, (0, 0, 0))
-                screen.blit(tension_message, (185, 230))
+
             elif event.key == K_BACKSPACE:
+
                 weight = weight[:-1]
+                if weight == '':
+                    weightInt = 0;
+                    tensions_after_block = get_tensions(rope1.angle, rope2.angle, weightInt);
+                else:
+                    weightInt = int(weight);
+                    tensions_after_block = get_tensions(rope1.angle, rope2.angle, weightInt);
             elif event.key == K_RETURN:
                 weightInt = int(weight);
                 tensions_after_block = get_tensions(rope1.angle, rope2.angle, weightInt);
