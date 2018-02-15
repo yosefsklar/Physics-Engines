@@ -30,5 +30,5 @@ class Vector(object):
         return vector
 
     def display(self, screen):
-        pygame.draw.line(screen, (0,0,0), self.back_pos, self.get_cartesian_coordinates()[1], 5)
+        return pygame.draw.line(screen, (0,0,0), self.back_pos, self.get_cartesian_coordinates()[1], 5)
 
