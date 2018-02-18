@@ -45,12 +45,17 @@ class Rope(Vector):
     def displayRope(self, screen):
         self.display(screen)
         pygame.draw.circle(screen, (0,0,0), (self.get_knot_coordinates()[0], self.get_knot_coordinates()[1]), 5)
+    @classmethod
+    def create_rope_from_vector(cls, vector):
+        rope = Rope(vector.length, vector.angle, vector.back_pos, (0, 0, 0))
+        return rope
     def splitRope(self):
         upper_rope_vector = Rope.from_cartesian_coordinates(self.get_knot_coordinates(), self.get_cartesian_coordinates()[1])
-        upper_rope = Rope(upper_rope_vector.length, upper_rope_vector.angle, upper_rope_vector.back_pos, (0,0,0))
+        upper_rope = Rope.create_rope_from_vector(upper_rope_vector)
         lower_rope_vector = Rope.from_cartesian_coordinates(self.get_cartesian_coordinates()[0], self.get_knot_coordinates())
-        lower_rope = Rope(lower_rope_vector.length, lower_rope_vector.angle, lower_rope_vector.back_pos, (0,0,0))
+        lower_rope = Rope.create_rope_from_vector(lower_rope_vector)
         return (upper_rope, lower_rope)
+
 class Block(Rect):
     def __init__(self, left, top, width, height):
         Rect.__init__(self,left, top, width, height)
@@ -69,7 +74,8 @@ class Block(Rect):
 def get_tensions(angle1, angle2, weight_of_block):
     angle1_adjusted = angle1 - math.pi
     angle2_adjusted = angle2 * (-1)
-
+    print(math.degrees(angle1_adjusted))
+    print(math.degrees(angle2_adjusted))
     t2 = weight_of_block/(math.tan(angle1_adjusted) * math.cos(angle2_adjusted) + math.sin(angle2_adjusted))
     t1 = t2 * math.cos(angle2_adjusted)/math.cos(angle1_adjusted)
     return(t1,t2)
@@ -93,7 +99,7 @@ option2 = (50, randint(50,150))
 options = [option1 ,option2]
 result = shuffle(options)
 rope1_vector = Vector.from_cartesian_coordinates((200,150),options[1])
-rope1 = Rope(rope1_vector.length, rope1_vector.angle, rope1_vector.back_pos, rope1_vector.get_cartesian_coordinates()[1])
+rope1 = Rope.create_rope_from_vector(rope1_vector)
 rope1.displayRope(screen)
 
 
@@ -104,7 +110,7 @@ option2 = (350, randint(50,150))
 options = [option1,option2]
 shuffle(options)
 rope2_vector = Vector.from_cartesian_coordinates((200,150), options[1],)
-rope2 = Rope(rope2_vector.length, rope2_vector.angle, rope2_vector.back_pos, rope2_vector.get_cartesian_coordinates()[1])
+rope2 = Rope.create_rope_from_vector(rope2_vector)
 rope2.displayRope(screen)
 
 
@@ -118,6 +124,7 @@ weight = "";
 weightInt = 0;
 
 tensions_after_block = (0,0)
+not_enough = False;
 
 while 1:
 
@@ -139,10 +146,8 @@ while 1:
                                                                  lower_rope_1.get_cartesian_coordinates()[0][1] + 100),
                                                                 (lower_rope_1.get_cartesian_coordinates()[1][0],
                                                                  lower_rope_1.get_cartesian_coordinates()[1][1] + 100))
-        lower_rope_1 = Rope(lower_rope_1_vector.length, lower_rope_1_vector.angle,
-                            lower_rope_1_vector.back_pos, lower_rope_1_vector, (0, 0, 0))
+        lower_rope_1 = Rope.create_rope_from_vector(lower_rope_1_vector)
         lower_rope_1.display(screen)
-
         split_rope_2 = rope2.splitRope()
         upper_rope_2 = split_rope_2[0]
         upper_rope_2.display(screen)
@@ -152,8 +157,7 @@ while 1:
                                                                  lower_rope_2.get_cartesian_coordinates()[0][1] + 100),
                                                                 (lower_rope_2.get_cartesian_coordinates()[1][0],
                                                                  lower_rope_2.get_cartesian_coordinates()[1][1] + 100))
-        lower_rope_2 = Rope(lower_rope_2_vector.length, lower_rope_2_vector.angle,
-                            lower_rope_2_vector.back_pos, lower_rope_2_vector, (0, 0, 0))
+        lower_rope_2 = Rope.create_rope_from_vector(lower_rope_2_vector )
         lower_rope_2.display(screen)
     # Split right rope
 
@@ -199,6 +203,11 @@ while 1:
         tension_message_t2 = myfont.render("T Right: " + str(round(tensions_after_block[1], 2)), 1, (0, 0, 0))
         screen.blit(tension_message_t2, (200, 230))
 
+        if not_enough:
+            not_enough_message = myfont.render("Neither rope broke! Try Again!", 1, (0, 0, 0))
+            screen.blit(not_enough_message, (60, 280))
+
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
@@ -208,31 +217,29 @@ while 1:
             if board.get_left_line().collidepoint(event.pos):
                 if mouse_y >= 150:
                     rope1_vector = Vector.from_cartesian_coordinates(rope1.back_pos, (50, 150))
-                    rope1 = Rope(rope1_vector.length, rope1_vector.angle, rope1_vector.back_pos, rope1_vector.get_cartesian_coordinates()[1])
+                    rope1 = Rope.create_rope_from_vector(rope1_vector)
                 else:
                     rope1_vector = Vector.from_cartesian_coordinates(rope1.back_pos, (50, mouse_y))
-                    rope1 = Rope(rope1_vector.length, rope1_vector.angle, rope1_vector.back_pos, rope1_vector.get_cartesian_coordinates()[1])
+                    rope1 = Rope.create_rope_from_vector(rope1_vector)
 
             if board.get_right_line().collidepoint(event.pos):
                 if mouse_y >= 150:
                     rope2_vector = Vector.from_cartesian_coordinates(rope2.back_pos, (350, 150))
-                    rope2  = Rope(rope2_vector.length, rope2_vector.angle, rope2_vector.back_pos,
-                                          rope2_vector.get_cartesian_coordinates()[1])
+                    rope2  = Rope.create_rope_from_vector(rope2_vector)
                 else:
                     rope2_vector = Vector.from_cartesian_coordinates(rope2.back_pos, (350, mouse_y))
-                    rope2 = Rope(rope2_vector.length, rope2_vector.angle, rope2_vector.back_pos,
-                                 rope2_vector.get_cartesian_coordinates()[1])
+                    rope2 = Rope.create_rope_from_vector(rope2_vector)
             if board.get_top_line().collidepoint(event.pos):
                 if mouse_x <= 200:
                     rope1_vector = Vector.from_cartesian_coordinates(rope1.back_pos, (mouse_x, 50))
-                    rope1 = Rope(rope1_vector.length, rope1_vector.angle, rope1_vector.back_pos,
-                                rope1_vector.get_cartesian_coordinates()[1])
+                    rope1 = Rope.create_rope_from_vector(rope1_vector)
                 else:
                     rope2_vector = Vector.from_cartesian_coordinates(rope2.back_pos, (mouse_x, 50))
-                    rope2 = Rope(rope2_vector.length, rope2_vector.angle, rope2_vector.back_pos,
-                                 rope2_vector.get_cartesian_coordinates()[1])
+                    rope2 = Rope.create_rope_from_vector(rope2_vector)
 
         elif event.type == KEYDOWN:
+            if event.key != K_RETURN:
+                not_enough = False
             if event.unicode.isdigit():
                 weight += event.unicode
                 weightInt = int(weight);
@@ -242,7 +249,7 @@ while 1:
 
                 weight = weight[:-1]
                 if weight == '':
-                    weightInt = 0;
+                    weightInt = 0
                     tensions_after_block = get_tensions(rope1.angle, rope2.angle, weightInt);
                 else:
                     weightInt = int(weight);
@@ -255,9 +262,10 @@ while 1:
                     rope1.broken = True
                 if tensions_after_block[1] > 375:
                     rope2.broken = True
+                if rope1.broken == False and rope2.broken == False:
+                    not_enough = True;
 
 
-#work on messages,
-# make side easier to click
+#thier should be a method to create a rope from a vector
 
     pygame.display.flip()
