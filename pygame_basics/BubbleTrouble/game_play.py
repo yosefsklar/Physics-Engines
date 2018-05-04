@@ -161,14 +161,35 @@ class Balls(object):
                 self.list.append(ball)
 
 class Sonic(object):
-    def __init__(self, moving_left_image, moving_right_image, center_image):
+    def __init__(self, moving_left_image, moving_right_image, center_image, sonic_height, sonic_width, board):
         self.x = width / 2
-        self.speed = 1
+        self.sonic_height = sonic_height
+        self.sonic_width = sonic_width
+        self.y = board.floor - self.sonic_height
+        self.speed = 5
         self.arrow_capacity = 1
         self.arrows_used = 0
         self.moving_left_image = moving_left_image
         self.moving_right_image = moving_right_image
         self.center_image = center_image
+        self.direction = "NONE"
+
+    def display_left(self):
+        screen.blit(self.moving_left_image, (self.x, self.y))
+    def display_right(self):
+        screen.blit(self.moving_right_image, (self.x, self.y))
+    def display_center(self):
+        screen.blit(self.center_image, (self.x, self.y))
+
+    def move_and_display(self):
+        if self.direction == "NONE":
+            self.display_center()
+        if self.direction == "RIGHT":
+            self.x += self.speed
+            self.display_right()
+        if self.direction == "LEFT":
+            self.x -= self.speed
+            self.display_left()
 
 class Board(object):
     def __init__(self):
@@ -193,7 +214,21 @@ class Board(object):
                 else:
                     in_collision[i][j] = False
 
-
+def implement_sonic_keys(event, sonic):
+    if event.type == KEYDOWN:
+        if event.key == K_RIGHT:
+            sonic.direction = "RIGHT"
+        if event.key == K_LEFT:
+            sonic.direction = "LEFT"
+    elif event.type == KEYUP:
+        if event.key == K_RIGHT:
+            if sonic.direction == "RIGHT":
+                sonic.direction = "NONE"
+        if event.key == K_LEFT:
+            if sonic.direction == "LEFT":
+                sonic.direction = "NONE"
+        #if event.key == K_UP:
+            #sonic.shoot()
 
 #SETUP
 #physical
@@ -201,8 +236,13 @@ balls = Balls()
 balls.add_balls_to_list()
 
 board = Board()
-
-
+sonic_left = pygame.image.load("sonic_left.png")
+sonic_left = pygame.transform.scale(sonic_left, (75,75))
+sonic_right = pygame.image.load("sonic_right.png")
+sonic_right = pygame.transform.scale(sonic_right, (75,75))
+sonic_center = pygame.image.load("sonic_center.png")
+sonic_center = pygame.transform.scale(sonic_center, (75,75))
+sonic = Sonic(sonic_left, sonic_right ,sonic_center, 75, 75, board)
 
 #action
 in_collision = [[False] * 10 for i in range(10)]
@@ -213,15 +253,19 @@ clock.tick()
 
 #gameplay
 while 1:
+    screen.fill(background_color)
+    board.display((0, 0, 0), 10)
     seconds = clock.tick() / 100
     #calculate_velocity(seconds, velocity)
+
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
+        implement_sonic_keys(event, sonic)
 
-    # screen.fill(background_color)
-    # board.display((0, 0, 0), 10)
+    sonic.move_and_display()
+
     #
     # board.detect_collisions(balls, in_collision)
     #
