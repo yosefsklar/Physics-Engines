@@ -248,6 +248,11 @@ class Sonic(object):
         for i in range(0, len(balls.list)):
             if self.is_sonic_collide_with_ball(balls.list[i]):
                     print("Sonic is Killed!")
+            if self.arrow_shooting:
+                arrow = self.arrow.display()
+                if arrow.colliderect(balls.list[i].display()):
+                    print("ball is killed!")
+
     def is_sonic_collide_with_ball(self, ball):
         total_radius = self.sonic_width/2 + ball.radius
         total_distance = math.sqrt((((self.x + self.sonic_width/2)  - ball.x) ** 2) + (((self.y + self.sonic_height/2) - ball.y) ** 2))
@@ -278,6 +283,7 @@ class Board(object):
 
                 else:
                     in_collision[i][j] = False
+
 
 def implement_sonic_keys(event, sonic, board):
     if event.type == KEYDOWN:
