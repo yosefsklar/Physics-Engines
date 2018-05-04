@@ -7,6 +7,8 @@ import numpy
 from enum import Enum
 
 
+
+
 background_color = (255, 255, 255)
 height = 600
 width = 800
@@ -17,6 +19,43 @@ pygame.display.set_caption("Balls Of Wrath")
 pygame.font.init()
 myfont = pygame.font.SysFont("monospace", 15)
 
+class Vector(object):
+    def __init__(self, back_end_coordinates, front_end_coordinates):
+        self.front_pos = front_end_coordinates
+        self.back_pos = back_end_coordinates
+
+    def display(self):
+        pygame.draw.line(screen, (0,0,0), self.back_pos, self.front_pos, 5)
+
+class VectorArrow(Vector):
+    def __init__(self, color, back_pos, front_end_coordinates):
+        Vector.__init__(self, back_pos, front_end_coordinates)
+        self.color = color
+        self.dragging = False
+    def get_length(self):
+        return math.sqrt((self.front_pos[0] - self.back_pos[0]) ** 2 + (self.front_pos[1] - self.back_pos[1]) ** 2)
+    def get_angle(self):
+        # if (self.front_pos[0] - self.back_pos[0]) < 0:
+        #     angle = (math.atan((self.front_pos[1] - self.back_pos[1]) / (
+        #                 self.front_pos[0] - self.back_pos[0]))) + math.pi
+        # else:
+        #     angle =  math.atan((self.front_pos[1] - self.back_pos[1])/(self.front_pos[0] - self.back_pos[0]))
+        angle = math.radians(270)
+        return angle
+    def displayTri(self):
+
+        triangle_point_center = (self.back_pos[0] + (self.get_length() - 10) * math.cos(self.get_angle()),
+                                     self.back_pos[1] + (self.get_length() - 10) * math.sin(self.get_angle()))
+        triangle_point_1 = (triangle_point_center[0] + (5 * math.sin(self.get_angle())),
+                            triangle_point_center[1] - (5 * math.cos(self.get_angle())))
+        triangle_point_2 = self.front_pos
+        triangle_point_3 = (triangle_point_center[0] - (5 * math.sin(self.get_angle())),
+                            triangle_point_center[1] + (5 * math.cos(self.get_angle())))
+        return pygame.draw.polygon(screen, self.color,
+                                   (triangle_point_1, triangle_point_2, triangle_point_3), 0)
+    def display(self):
+        self.displayTri()
+        return pygame.draw.line(screen, self.color, self.back_pos, self.front_pos, 5)
 
 class Type(Enum):
     Float_No_Collide = 1
@@ -131,30 +170,31 @@ class Ball_Bounce_No_Collide(Ball):
 class Balls(object):
     def __init__(self):
         self.list = []
-    def add_balls_to_list(self):
-        for x in range(10):
-            types = [Type.Float_No_Collide, Type.Float_Collide, Type.Bounce_No_Collide, Type.Bounce_Collide]
+    def add_balls_to_list(self, number):
+        for x in range(number):
+            # types = [Type.Float_No_Collide, Type.Float_Collide, Type.Bounce_No_Collide, Type.Bounce_Collide]
+            types = [Type.Float_Collide, Type.Bounce_Collide, Type.Bounce_No_Collide]
             type = choice(types)
             if type == Type.Float_No_Collide:
                 angle = math.radians(randint(45, 135))
                 velocity = 40
                 vx = velocity * math.cos(angle)
                 vy = velocity * math.sin(angle)
-                ball = Ball_Float_No_Collide((255, 0, 0), 50, randint(25, height / 2 - 100), vx, vy, randint(15,25))
+                ball = Ball_Float_No_Collide((0,255,0), 50, randint(25, height / 2 - 100), vx, vy, randint(15,25))
                 self.list.append(ball)
-            elif type == Type.Float_Collide:
+            if type == Type.Float_Collide:
                 angle = math.radians(randint(45, 135))
                 velocity = 40
                 vx = velocity * math.cos(angle)
                 vy = velocity * math.sin(angle)
-                ball = Ball_Float_Collide((253,240,10), 50, randint(25, height / 2 - 100), vx, vy, randint(15,25))
+                ball = Ball_Float_Collide((255, 0, 0), 50, randint(25, height / 2 - 100), vx, vy, randint(15,25))
                 self.list.append(ball)
-            elif type == Type.Bounce_No_Collide:
+            if type == Type.Bounce_No_Collide:
                 vx = 40
                 vy = 0
-                ball = Ball_Bounce_No_Collide((0, 255, 0), 50, randint(25, height / 2 - 100), vx, vy, randint(15,25))
+                ball = Ball_Bounce_No_Collide((253,240,10), 50, randint(25, height / 2 - 100), vx, vy, randint(15,25))
                 self.list.append(ball)
-            elif type == Type.Bounce_Collide:
+            if type == Type.Bounce_Collide:
                 vx = 40
                 vy = 0
                 ball = Ball_Bounce_Collide((0, 0, 255), 50, randint(25, height / 2 - 100), vx, vy, randint(15,25))
@@ -173,6 +213,9 @@ class Sonic(object):
         self.moving_right_image = moving_right_image
         self.center_image = center_image
         self.direction = "NONE"
+        self.arrow_shooting = False
+        self.arrow = None
+        self.arrow_speed = 5
 
     def display_left(self):
         screen.blit(self.moving_left_image, (self.x, self.y))
@@ -181,7 +224,7 @@ class Sonic(object):
     def display_center(self):
         screen.blit(self.center_image, (self.x, self.y))
 
-    def move_and_display(self):
+    def move_and_display(self, board):
         if self.direction == "NONE":
             self.display_center()
         if self.direction == "RIGHT":
@@ -190,6 +233,28 @@ class Sonic(object):
         if self.direction == "LEFT":
             self.x -= self.speed
             self.display_left()
+        if sonic.x < board.left_wall:
+            sonic.x = board.left_wall
+        if sonic.x > board.right_wall - sonic.sonic_width:
+            sonic.x = board.right_wall - sonic.sonic_width
+        if self.arrow_shooting:
+            if self.arrow.front_pos[1] <= board.roof:
+                self.arrow_shooting = False
+            else:
+                self.arrow.front_pos = (self.arrow.front_pos[0] , self.arrow.front_pos[1] - self.arrow_speed)
+                self.arrow.display()
+
+    def field_collision_with_sonic(self, balls):
+        for i in range(0, len(balls.list)):
+            if self.is_sonic_collide_with_ball(balls.list[i]):
+                    print("Sonic is Killed!")
+    def is_sonic_collide_with_ball(self, ball):
+        total_radius = self.sonic_width/2 + ball.radius
+        total_distance = math.sqrt((((self.x + self.sonic_width/2)  - ball.x) ** 2) + (((self.y + self.sonic_height/2) - ball.y) ** 2))
+        if (total_distance <= total_radius):
+            return True
+        else:
+            return False
 
 class Board(object):
     def __init__(self):
@@ -214,12 +279,16 @@ class Board(object):
                 else:
                     in_collision[i][j] = False
 
-def implement_sonic_keys(event, sonic):
+def implement_sonic_keys(event, sonic, board):
     if event.type == KEYDOWN:
         if event.key == K_RIGHT:
             sonic.direction = "RIGHT"
         if event.key == K_LEFT:
             sonic.direction = "LEFT"
+        if event.key == K_UP:
+            if sonic.arrow_shooting == False:
+                sonic.arrow_shooting = True
+                sonic.arrow = VectorArrow((0, 0, 0), (sonic.x + (sonic.sonic_width / 2), board.floor), (sonic.x + (sonic.sonic_width / 2), board.floor - 75))
     elif event.type == KEYUP:
         if event.key == K_RIGHT:
             if sonic.direction == "RIGHT":
@@ -227,13 +296,13 @@ def implement_sonic_keys(event, sonic):
         if event.key == K_LEFT:
             if sonic.direction == "LEFT":
                 sonic.direction = "NONE"
-        #if event.key == K_UP:
-            #sonic.shoot()
+
+
 
 #SETUP
 #physical
 balls = Balls()
-balls.add_balls_to_list()
+balls.add_balls_to_list(3)
 
 board = Board()
 sonic_left = pygame.image.load("sonic_left.png")
@@ -262,16 +331,16 @@ while 1:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-        implement_sonic_keys(event, sonic)
+        implement_sonic_keys(event, sonic, board)
 
-    sonic.move_and_display()
+    sonic.move_and_display(board)
+    sonic.field_collision_with_sonic(balls)
 
-    #
-    # board.detect_collisions(balls, in_collision)
-    #
-    # for ball in balls.list:
-    #     ball.display()
-    #     ball.move(board, seconds)
+    board.detect_collisions(balls, in_collision)
+
+    for ball in balls.list:
+        ball.display()
+        ball.move(board, seconds)
 
     pygame.display.flip()
     pygame.time.delay(10)
