@@ -133,13 +133,6 @@ class Ball_Collide(Ball):
         self.vy = ball_2.vy + v2yi - self.vy
 
 
-        # ball1_vx_initial = self.vx
-        # ball1_vy_initial = self.vy
-        # self.vx = ball_2.vx
-        # self.vy = ball_2.vy
-        # ball_2.vx = ball1_vx_initial
-        # ball_2.vy = ball1_vy_initial
-
 
 class Ball_Float_Collide(Ball_Collide):
     def __init__(self, color, x, y, vx, vy, radius, mass):
@@ -438,48 +431,73 @@ welcome_message = "Play"
 count_down = 3
 counting_down = False
 game_over = False
-
+high_score = 0
 while 1:
     #THIS CODE SETS UP THE HOME SCREEN
     screen.fill((0,0,0))
+    sonic_home = pygame.image.load("sonic_home.png")
+    sonic_home = pygame.transform.scale(sonic_home, (60,60))
+    screen.blit(sonic_home, (width / 2 -30, 5))
+
     welcome_font = pygame.font.SysFont("ariel", 40)
     welcome_font.set_underline(True)
     welcome_font.set_bold(True)
     score = welcome_font.render("Balls of Wrath", 1, (0, 0, 255))
-    screen.blit(score, (width/ 2 -110, 100))
+    screen.blit(score, (width/ 2 -110, 75))
 
     instructions_font = pygame.font.SysFont("ariel", 40)
     instructions_font = pygame.font.SysFont("monospace", 15)
     instructions_font.set_bold(True)
     instruction_1 = instructions_font.render("Collect as many points as you can while avoiding the bouncing balls", 1, (255, 255, 255))
-    screen.blit(instruction_1, (width / 2 - 300, 150))
+    screen.blit(instruction_1, (width / 2 - 300, 130))
 
     instruction_2 = instructions_font.render("Destroy balls by shooting them with arrows", 1,(255, 255, 255))
-    screen.blit(instruction_2, (width / 2 - 175, 170))
+    screen.blit(instruction_2, (width / 2 - 175, 150))
 
     instruction_3 = instructions_font.render("Collect Coin = 100 points", 1, (255, 255, 255))
-    screen.blit(instruction_3, (width / 2 - 150, 210))
+    screen.blit(instruction_3, (width / 2 - 150, 190))
 
     instruction_4 = instructions_font.render("Clear Field of All Balls = 200", 1, (255, 255, 255))
-    screen.blit(instruction_4, (width / 2 - 150, 230))
+    screen.blit(instruction_4, (width / 2 - 150, 210))
 
     instruction_5 = instructions_font.render("Collect Star = 300 points", 1, (255, 255, 255))
+    screen.blit(instruction_5, (width / 2 - 150, 230))
+    instruction_5 = instructions_font.render("Collect Bomb = 200 points, all balls are destroyed", 1, (255, 255, 255))
     screen.blit(instruction_5, (width / 2 - 150, 250))
 
-    instruction_6 = instructions_font.render("Move left using the Left Arrow Key", 1, (255, 255, 255))
-    screen.blit(instruction_6, (width / 2 - 175, 290))
+    instruction_6 = instructions_font.render("MOVE LEFT using the Left Arrow Key", 1, (255, 255, 255))
+    screen.blit(instruction_6, (width / 2 - 175, 270))
 
-    instruction_7 = instructions_font.render("Move right using the Right Arrow Key", 1, (255, 255, 255))
-    screen.blit(instruction_7, (width / 2 - 175, 310))
+    instruction_7 = instructions_font.render("MOVE RIGHT using the Right Arrow Key", 1, (255, 255, 255))
+    screen.blit(instruction_7, (width / 2 - 175, 290))
 
-    instruction_8 = instructions_font.render("Shoot an arrow using the UP Arrow Key", 1, (255, 255, 255))
-    screen.blit(instruction_8, (width / 2 - 175, 330))
+    instruction_8 = instructions_font.render("SHOOT AN ARROW using the UP Arrow Key", 1, (255, 255, 255))
+    screen.blit(instruction_8, (width / 2 - 175, 310))
 
-
-    play_button = pygame.draw.rect(screen, (0,0,255), (width/2 - 75, height - 150, 150, 75))
+    play_button = pygame.draw.rect(screen, (0, 0, 255), (width / 2 - 75, height - 150, 150, 75))
     welcome_font = pygame.font.SysFont("ariel", 40)
-    score = welcome_font.render("Play", 1, (0, 0, 0))
-    screen.blit(score, (width/2 - 75 + 45, height - 150 + 25))
+    score = welcome_font.render(str(welcome_message), 1, (0, 0, 0))
+    if welcome_message == "Play Again":
+        screen.blit(score, (width / 2 - 75 , height - 150 + 25))
+        instruction_9 = instructions_font.render("High Score: " + str(high_score), 1, (255, 255, 255))
+        screen.blit(instruction_9, (width/2 - 75, height - 50))
+    else:
+        screen.blit(score, (width/2 - 75 + 45, height - 150 + 25))
+
+    instruction_10 = instructions_font.render("Physics: There are three types of balls in the game. Blue balls", 1, (255, 255, 255))
+    screen.blit(instruction_10, (width / 2 - 300, height - 250))
+
+    instruction_11 = instructions_font.render("and Yellow balls are affected by gravity, Red balls are not.", 1, (255, 255, 255))
+    screen.blit(instruction_11, (width / 2 - 300, height - 230))
+
+    instruction_12 = instructions_font.render("Blue balls and Red balls collide with other balls, Yellow balls", 1, (255, 255, 255))
+    screen.blit(instruction_12, (width / 2 - 300, height - 210))
+
+    instruction_13 = instructions_font.render("do not. Each ball has a mass relative to thier volume and (by ", 1, (255, 255, 255))
+    screen.blit(instruction_13, (width / 2 - 300, height - 190))
+
+    instruction_14 = instructions_font.render("extension, thier radius). All collision are calculated accordingly.", 1, (255, 255, 255))
+    screen.blit(instruction_14, (width / 2 - 300, height - 170))
 
     pygame.display.flip()
     for event in pygame.event.get():
@@ -530,6 +548,9 @@ while 1:
             playing = False
             game_over = False
             count_down = 3
+            ball_added_timer = 4000
+            if sonic.score > high_score:
+                high_score = sonic.score
             pygame.time.set_timer(count, 1000)
             pygame.display.flip()
             sonic = Sonic(sonic_left, sonic_right ,sonic_center, sonic_dead, 75, 75, board, 3)
@@ -538,6 +559,7 @@ while 1:
             items = Items(board)
             round_count = 0
             coin_count = 1
+            welcome_message = "Play Again"
             pygame.time.delay(5000)
 
 
